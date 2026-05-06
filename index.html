@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank - Currency Exchange</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="./logo.svg" alt="Bank Logo" class="logo-image">
+                </div>
+                <nav class="nav-menu">
+                    <a href="#" class="nav-item">BANK</a>
+                    <a href="#" class="nav-item">BİZNES</a>
+                    <a href="#" class="nav-item">FƏRDİ</a>
+                    <a href="#" class="nav-item">KART</a>
+                    <a href="#" class="nav-item">ONLİNE</a>
+                    <a href="#" class="nav-item">MÜRACİƏT</a>
+                    <a href="#" class="nav-item">HAQQIMIZDA</a>
+                </nav>
+                <a href="#" class="login-btn">LOGİN</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h2 class="main-title">Valyuta dəyişdir</h2>
+
+            <div class="exchange-container">
+                <div class="exchange-column exchange-left">
+                    <div class="tab-group">
+                        <p class="tab-p active">Daxil et/Dəyiş</p>
+                    </div>
+
+                    <div class="currency-tabs">
+                        <button class="currency-btn currency-btn-left">RUB</button>
+                        <button class="currency-btn currency-btn-left">USD</button>
+                        <button class="currency-btn currency-btn-left">EUR</button>
+                        <button class="currency-btn currency-btn-left">GBP</button>
+                    </div>
+
+                    <div class="exchange-input-output-group">
+                        <input type="text" class="exchange-input" placeholder="Eded daxil edin">
+                        <span class="exchange-rate-info">1 RUB = 0.0135 USD</span>
+                    </div>
+                </div>
+
+                <div class="exchange-divider">
+                    <span class="arrow">⇄</span>
+                </div>
+
+                <div class="exchange-column exchange-right">
+                    <div class="tab-group">
+                        <p class="tab-p active">Daxil et/Dəyiş</p>
+                    </div>
+
+                    <div class="currency-tabs">
+                        <button class="currency-btn currency-btn-right">USD</button>
+                        <button class="currency-btn currency-btn-right">EUR</button>
+                        <button class="currency-btn currency-btn-right">GBP</button>
+                        <button class="currency-btn currency-btn-right">RUB</button>
+                    </div>
+
+                    <div class="exchange-input-output-group">
+                        <input type="text" class="exchange-input" placeholder="Eded daxil edin">
+                        <span class="exchange-rate-info">1 USD = 73.8896 RUB</span>
+                    </div>
+                </div>
+
+                <div class="exchange-column bank-selector">
+                    <div class="bank-header">Hansı bank?</div>
+
+                    <div class="bank-tabs">
+                        <button class="bank-tab-btn">ABC</button>
+                        <button class="bank-tab-btn">NEW</button>
+                        <button class="bank-tab-btn">AME</button>
+                        <button class="bank-tab-btn">RED</button>
+                    </div>
+
+                    <div class="bank-rates">
+                        <div class="rate-item">
+                            <div class="rate-label buy">BUY</div>
+                            <div class="rate-value">66.15</div>
+                        </div>
+                        <div class="rate-item">
+                            <div class="rate-label sell">SELL</div>
+                            <div class="rate-value">67.83</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="app.js" defer></script>
+</body>
+
+</html>
