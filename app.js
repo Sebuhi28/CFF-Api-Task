@@ -35,7 +35,6 @@ function toggleStatusBanner(isOffline) {
     if (banner === null) {
         banner = document.createElement('div');
         banner.id = 'offline-banner';
-        
         banner.style.position = 'sticky';
         banner.style.top = '65px';
         banner.style.left = '0';
@@ -50,10 +49,10 @@ function toggleStatusBanner(isOffline) {
         banner.style.display = 'none';
 
         const header = document.querySelector('.header');
-        header.appendChild(banner);
+        if (header) header.appendChild(banner);
     }
     
-    if (isOffline === true) {
+    if (isOffline) {
         banner.innerText = "İnternet bağlantısı yoxdur - Oflayn rejimdə işləyir";
         banner.style.display = 'block';
     } else {
@@ -62,9 +61,7 @@ function toggleStatusBanner(isOffline) {
 }
 
 function setActiveButton(buttons, activeValue) {
-    for (let i = 0; i < buttons.length; i++) {
-        let btn = buttons[i];
-        
+    buttons.forEach(btn => {
         if (btn.innerText.trim() === activeValue) {
             btn.style.backgroundColor = '#7c3aed';
             btn.style.color = '#fff';
@@ -72,15 +69,12 @@ function setActiveButton(buttons, activeValue) {
             btn.style.backgroundColor = '#f0f0f0';
             btn.style.color = '#666';
         }
-    }
+    });
 }
 
 function validateInput(inputElement) {
     let val = inputElement.value;
-    
-    val = val.replace(/,/g, '.'); 
-    
-    val = val.replace(/[^0-9.]/g, ''); 
+    val = val.replace(/,/g, '.').replace(/[^0-9.]/g, ''); 
 
     let parts = val.split('.');
     if (parts.length > 2) {
@@ -88,6 +82,7 @@ function validateInput(inputElement) {
     }
 
     let numberValue = parseFloat(val);
+
     if (numberValue > 10000) {
         val = '10000';
         numberValue = 10000;
@@ -95,72 +90,42 @@ function validateInput(inputElement) {
 
     inputElement.value = val;
 
-    if (isNaN(numberValue)) {
-        return 0;
-    } else {
-        return numberValue;
-    }
+    return isNaN(numberValue) ? 0 : numberValue;
 }
 
 function calculateRate(quotes) {
-    let fromUSD;
-    let toUSD;
-
-    if (leftCurrency === 'USD') {
-        fromUSD = 1;
-    } else {
-        fromUSD = quotes['USD' + leftCurrency];
-    }
-
-    if (rightCurrency === 'USD') {
-        toUSD = 1;
-    } else {
-        toUSD = quotes['USD' + rightCurrency];
-    }
-
+    let fromUSD = leftCurrency === 'USD' ? 1 : quotes['USD' + leftCurrency];
+    let toUSD = rightCurrency === 'USD' ? 1 : quotes['USD' + rightCurrency];
     return toUSD / fromUSD;
 }
 
 function renderUI(baseRate) {
     let bank = banks[activeBank];
-    let buyPrice = baseRate * (1 + bank.buy);
-    let sellPrice = baseRate * (1 + bank.sell);
+    
+    let bankBuyPrice = baseRate * (1 + bank.buy);
+    let bankSellPrice = baseRate * (1 + bank.sell);
 
-    leftRateInfo.innerText = "1 " + leftCurrency + " = " + baseRate.toFixed(4) + " " + rightCurrency;
-    rightRateInfo.innerText = "1 " + rightCurrency + " = " + (1 / baseRate).toFixed(4) + " " + leftCurrency;
+    leftRateInfo.innerText = `1 ${leftCurrency} = ${baseRate.toFixed(4)} ${rightCurrency}`;
+    rightRateInfo.innerText = `1 ${rightCurrency} = ${(1 / baseRate).toFixed(4)} ${leftCurrency}`;
 
-    buyRateDisplay.innerText = buyPrice.toFixed(4);
-    sellRateDisplay.innerText = sellPrice.toFixed(4);
+    if (buyRateDisplay) buyRateDisplay.innerText = bankBuyPrice.toFixed(4);
+    if (sellRateDisplay) sellRateDisplay.innerText = bankSellPrice.toFixed(4);
 
     let amountLeft = validateInput(leftInput);
     let amountRight = validateInput(rightInput);
 
     if (activeInput === 'left') {
-        if (leftInput.value === '') {
-            rightInput.value = '';
-        } else {
-            rightInput.value = (amountLeft * buyPrice).toFixed(4);
-        }
+        rightInput.value = leftInput.value === '' ? '' : (amountLeft * baseRate).toFixed(4);
     } else if (activeInput === 'right') {
-        if (rightInput.value === '') {
-            leftInput.value = '';
-        } else {
-            leftInput.value = (amountRight / sellPrice).toFixed(4);
-        }
+        leftInput.value = rightInput.value === '' ? '' : (amountRight / baseRate).toFixed(4);
     }
 }
 
 function loadFromCache() {
-    if (navigator.onLine === false) {
-        toggleStatusBanner(true);
-    } else {
-        toggleStatusBanner(false);
-    }
-
+    toggleStatusBanner(!navigator.onLine);
     let cachedData = localStorage.getItem('rates_cache');
     if (cachedData !== null) {
-        let parsedData = JSON.parse(cachedData);
-        let rate = calculateRate(parsedData);
+        let rate = calculateRate(JSON.parse(cachedData));
         renderUI(rate);
     }
 }
@@ -171,54 +136,45 @@ function updateConversion() {
         return;
     }
 
-    let url = BASE_URL + "?access_key=" + API_KEY;
+    let url = `${BASE_URL}?access_key=${API_KEY}`;
 
     fetch(url)
-        .then(function(res) {
-            return res.json();
-        })
-        .then(function(data) {
-            if (data.success === true) {
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
                 toggleStatusBanner(false);
-                
-                let dataString = JSON.stringify(data.quotes);
-                localStorage.setItem('rates_cache', dataString);
-                
-                let rate = calculateRate(data.quotes);
-                renderUI(rate);
+                localStorage.setItem('rates_cache', JSON.stringify(data.quotes));
+                renderUI(calculateRate(data.quotes));
             } else {
-                console.log("API Xətası");
                 loadFromCache();
             }
         })
-        .catch(function(error) {
-            loadFromCache();
-        });
+        .catch(() => loadFromCache());
 }
 
-for (let i = 0; i < leftBtns.length; i++) {
-    leftBtns[i].addEventListener('click', function() {
+leftBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
         leftCurrency = this.innerText.trim();
         setActiveButton(leftBtns, leftCurrency);
         updateConversion();
     });
-}
+});
 
-for (let i = 0; i < rightBtns.length; i++) {
-    rightBtns[i].addEventListener('click', function() {
+rightBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
         rightCurrency = this.innerText.trim();
         setActiveButton(rightBtns, rightCurrency);
         updateConversion();
     });
-}
+});
 
-for (let i = 0; i < bankBtns.length; i++) {
-    bankBtns[i].addEventListener('click', function() {
+bankBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
         activeBank = this.innerText.trim();
         setActiveButton(bankBtns, activeBank);
-        updateConversion();
+        updateConversion(); // Burada yalnız aşağıdakı bank qiymətləri dəyişəcək
     });
-}
+});
 
 leftInput.addEventListener('input', function() {
     activeInput = 'left';
@@ -238,11 +194,9 @@ window.onload = function() {
     updateConversion();
 };
 
-window.addEventListener('online', function() {
+window.addEventListener('online', () => {
     toggleStatusBanner(false);
     updateConversion(); 
 });
 
-window.addEventListener('offline', function() {
-    toggleStatusBanner(true);
-});
+window.addEventListener('offline', () => toggleStatusBanner(true));
