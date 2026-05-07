@@ -84,7 +84,7 @@ function validateInput(inputElement) {
     }
 
     if (parts.length === 2 && parts[1].length > 4) {
-        val = parts[0] + '.' + parts[1].substring(0, 4);
+        val = parts[0] + '.' + parts[1].slice(0, 4);
     }
 
     let numberValue = parseFloat(val);
