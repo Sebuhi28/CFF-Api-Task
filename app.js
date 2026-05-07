@@ -74,11 +74,18 @@ function setActiveButton(buttons, activeValue) {
 
 function validateInput(inputElement) {
     let val = inputElement.value;
+    
     val = val.replace(/,/g, '.').replace(/[^0-9.]/g, ''); 
 
+    // Birdən çox nöqtənin qarşısını al
     let parts = val.split('.');
     if (parts.length > 2) {
         val = parts[0] + '.' + parts.slice(1).join('');
+        parts = val.split('.');
+    }
+
+    if (parts.length === 2 && parts[1].length > 4) {
+        val = parts[0] + '.' + parts[1].substring(0, 4);
     }
 
     let numberValue = parseFloat(val);
@@ -89,7 +96,6 @@ function validateInput(inputElement) {
     }
 
     inputElement.value = val;
-
     return isNaN(numberValue) ? 0 : numberValue;
 }
 
@@ -172,7 +178,8 @@ bankBtns.forEach(btn => {
     btn.addEventListener('click', function() {
         activeBank = this.innerText.trim();
         setActiveButton(bankBtns, activeBank);
-        updateConversion(); // Burada yalnız aşağıdakı bank qiymətləri dəyişəcək
+        renderUI(parseFloat(localStorage.getItem('last_base_rate') || 1));
+        updateConversion();
     });
 });
 
