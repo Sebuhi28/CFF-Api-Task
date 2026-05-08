@@ -56,22 +56,20 @@ function renderUI() {
     rightRateInfo.innerText = `1 ${rightCurrency} = ${(1 / baseRate).toFixed(4)} ${leftCurrency}`;
 
     let bankData = banks[activeBank];
-    let currentAmount; 
 
     if (activeInput === 'left') {
-        currentAmount = validateInput(leftInput);
-        rightInput.value = leftInput.value === '' ? '' : (currentAmount * baseRate).toFixed(4);
+        let amountLeft = validateInput(leftInput);
+        let midValue = amountLeft * baseRate;
+        rightInput.value = leftInput.value === '' ? '' : midValue.toFixed(4);
         
-        let convertedValue = currentAmount * baseRate;
-        buyRateDisplay.innerText = (convertedValue * (1 + bankData.buy)).toFixed(2);
-        sellRateDisplay.innerText = (convertedValue * (1 + bankData.sell)).toFixed(2);
+        buyRateDisplay.innerText = (midValue * (1 + bankData.buy)).toFixed(2);
+        sellRateDisplay.innerText = (midValue * (1 + bankData.sell)).toFixed(2);
     } else {
-        currentAmount = validateInput(rightInput);
-        // Sol inputu hesabla
-        leftInput.value = rightInput.value === '' ? '' : (currentAmount / baseRate).toFixed(4);
+        let amountRight = validateInput(rightInput);
+        leftInput.value = rightInput.value === '' ? '' : (amountRight / baseRate).toFixed(4);
         
-        buyRateDisplay.innerText = (currentAmount * (1 + bankData.buy)).toFixed(2);
-        sellRateDisplay.innerText = (currentAmount * (1 + bankData.sell)).toFixed(2);
+        buyRateDisplay.innerText = (amountRight * (1 + bankData.buy)).toFixed(2);
+        sellRateDisplay.innerText = (amountRight * (1 + bankData.sell)).toFixed(2);
     }
 }
 
@@ -84,7 +82,7 @@ function fetchData() {
                 renderUI();
             }
         })
-        .catch(err => console.log("Xəta:", err));
+        .catch(err => console.log("API Xətası:", err));
 }
 
 leftBtns.forEach(btn => {
@@ -105,11 +103,12 @@ rightBtns.forEach(btn => {
 
 bankBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-        activeBank = this.innerText.trim();
+        activeBank = this.innerText.trim(); 
         setActiveButton(bankBtns, activeBank);
-        renderUI();
+        renderUI(); 
     });
 });
+
 
 leftInput.addEventListener('input', () => {
     activeInput = 'left';
