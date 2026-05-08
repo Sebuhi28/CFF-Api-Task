@@ -25,65 +25,34 @@ const leftBtns = document.querySelectorAll('.currency-btn-left');
 const rightBtns = document.querySelectorAll('.currency-btn-right');
 const bankBtns = document.querySelectorAll('.bank-tab-btn');
 
+
 function toggleStatusBanner(isOffline) {
-
     let banner = document.getElementById('offline-banner');
-
-
-
     if (banner === null) {
-
         banner = document.createElement('div');
-
         banner.id = 'offline-banner';
-
-        banner.style.position = 'sticky';
-
-        banner.style.top = '65px';
-
-        banner.style.left = '0';
-
-        banner.style.width = '100%';
-
-        banner.style.backgroundColor = '#ff5252';
-
-        banner.style.color = 'white';
-
-        banner.style.textAlign = 'center';
-
-        banner.style.padding = '14px 20px';
-
-        banner.style.fontWeight = '600';
-
-        banner.style.zIndex = '999';
-
-        banner.style.borderBottom = '3px solid #ff4444';
-
-        banner.style.display = 'none';
-
-
-
+        banner.style.cssText = "position:sticky; top:65px; width:100%; background:#ff5252; color:white; text-align:center; padding:14px; font-weight:600; z-index:999; display:none;";
         const header = document.querySelector('.header');
-
         if (header) header.appendChild(banner);
-
     }
-
     
-
     if (isOffline) {
-
         banner.innerText = "İnternet bağlantısı yoxdur - Oflayn rejimdə işləyir";
-
         banner.style.display = 'block';
-
     } else {
-
         banner.style.display = 'none';
-
     }
-
 }
+
+window.addEventListener('online', () => {
+    toggleStatusBanner(false);
+    fetchData(); 
+});
+
+window.addEventListener('offline', () => {
+    toggleStatusBanner(true);
+});
+
 
 function setActiveButton(buttons, activeValue) {
     buttons.forEach(btn => {
@@ -121,29 +90,49 @@ function renderUI() {
         let amountLeft = validateInput(leftInput);
         let midValue = amountLeft * baseRate;
         rightInput.value = leftInput.value === '' ? '' : midValue.toFixed(4);
-        
         buyRateDisplay.innerText = (midValue * (1 + bankData.buy)).toFixed(2);
         sellRateDisplay.innerText = (midValue * (1 + bankData.sell)).toFixed(2);
     } else {
         let amountRight = validateInput(rightInput);
         leftInput.value = rightInput.value === '' ? '' : (amountRight / baseRate).toFixed(4);
-        
         buyRateDisplay.innerText = (amountRight * (1 + bankData.buy)).toFixed(2);
         sellRateDisplay.innerText = (amountRight * (1 + bankData.sell)).toFixed(2);
     }
 }
 
 function fetchData() {
+    if (!navigator.onLine) {
+        toggleStatusBanner(true);
+        let cached = localStorage.getItem('rates_cache');
+        if (cached) {
+            globalQuotes = JSON.parse(cached);
+            renderUI();
+        }
+        return;
+    }
+
     fetch(`${BASE_URL}?access_key=${API_KEY}`)
         .then(res => res.json())
         .then(data => {
             if (data.success) {
                 globalQuotes = data.quotes;
+                // Gələcək oflayn istifadə üçün yadda saxla
+                localStorage.setItem('rates_cache', JSON.stringify(data.quotes));
+                toggleStatusBanner(false);
                 renderUI();
             }
         })
-        .catch(err => console.log("API Xətası:", err));
+        .catch(err => {
+            console.log("Xəta:", err);
+            // API-də problem olsa belə keşi yoxla
+            let cached = localStorage.getItem('rates_cache');
+            if (cached) {
+                globalQuotes = JSON.parse(cached);
+                renderUI();
+            }
+        });
 }
+
 
 leftBtns.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -168,7 +157,6 @@ bankBtns.forEach(btn => {
         renderUI(); 
     });
 });
-
 
 leftInput.addEventListener('input', () => {
     activeInput = 'left';
