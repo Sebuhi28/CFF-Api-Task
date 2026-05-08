@@ -25,6 +25,66 @@ const leftBtns = document.querySelectorAll('.currency-btn-left');
 const rightBtns = document.querySelectorAll('.currency-btn-right');
 const bankBtns = document.querySelectorAll('.bank-tab-btn');
 
+function toggleStatusBanner(isOffline) {
+
+    let banner = document.getElementById('offline-banner');
+
+
+
+    if (banner === null) {
+
+        banner = document.createElement('div');
+
+        banner.id = 'offline-banner';
+
+        banner.style.position = 'sticky';
+
+        banner.style.top = '65px';
+
+        banner.style.left = '0';
+
+        banner.style.width = '100%';
+
+        banner.style.backgroundColor = '#ff5252';
+
+        banner.style.color = 'white';
+
+        banner.style.textAlign = 'center';
+
+        banner.style.padding = '14px 20px';
+
+        banner.style.fontWeight = '600';
+
+        banner.style.zIndex = '999';
+
+        banner.style.borderBottom = '3px solid #ff4444';
+
+        banner.style.display = 'none';
+
+
+
+        const header = document.querySelector('.header');
+
+        if (header) header.appendChild(banner);
+
+    }
+
+    
+
+    if (isOffline) {
+
+        banner.innerText = "İnternet bağlantısı yoxdur - Oflayn rejimdə işləyir";
+
+        banner.style.display = 'block';
+
+    } else {
+
+        banner.style.display = 'none';
+
+    }
+
+}
+
 function setActiveButton(buttons, activeValue) {
     buttons.forEach(btn => {
         if (btn.innerText.trim() === activeValue) {
