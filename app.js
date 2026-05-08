@@ -25,34 +25,36 @@ const leftBtns = document.querySelectorAll('.currency-btn-left');
 const rightBtns = document.querySelectorAll('.currency-btn-right');
 const bankBtns = document.querySelectorAll('.bank-tab-btn');
 
-
 function toggleStatusBanner(isOffline) {
     let banner = document.getElementById('offline-banner');
+
     if (banner === null) {
         banner = document.createElement('div');
         banner.id = 'offline-banner';
-        banner.style.cssText = "position:sticky; top:65px; width:100%; background:#ff5252; color:white; text-align:center; padding:14px; font-weight:600; z-index:999; display:none;";
-        const header = document.querySelector('.header');
-        if (header) header.appendChild(banner);
+        banner.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ff5252;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-weight: bold;
+            z-index: 10000;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        document.body.prepend(banner);
     }
-    
+
     if (isOffline) {
-        banner.innerText = "İnternet bağlantısı yoxdur - Oflayn rejimdə işləyir";
+        banner.innerText = " İnternet bağlantısı yoxdur - Oflayn rejimdə işləyir";
         banner.style.display = 'block';
     } else {
         banner.style.display = 'none';
     }
 }
-
-window.addEventListener('online', () => {
-    toggleStatusBanner(false);
-    fetchData(); 
-});
-
-window.addEventListener('offline', () => {
-    toggleStatusBanner(true);
-});
-
 
 function setActiveButton(buttons, activeValue) {
     buttons.forEach(btn => {
@@ -90,11 +92,14 @@ function renderUI() {
         let amountLeft = validateInput(leftInput);
         let midValue = amountLeft * baseRate;
         rightInput.value = leftInput.value === '' ? '' : midValue.toFixed(4);
+        
         buyRateDisplay.innerText = (midValue * (1 + bankData.buy)).toFixed(2);
         sellRateDisplay.innerText = (midValue * (1 + bankData.sell)).toFixed(2);
     } else {
         let amountRight = validateInput(rightInput);
-        leftInput.value = rightInput.value === '' ? '' : (amountRight / baseRate).toFixed(4);
+        let midValueLeft = amountRight / baseRate;
+        leftInput.value = rightInput.value === '' ? '' : midValueLeft.toFixed(4);
+        
         buyRateDisplay.innerText = (amountRight * (1 + bankData.buy)).toFixed(2);
         sellRateDisplay.innerText = (amountRight * (1 + bankData.sell)).toFixed(2);
     }
@@ -116,23 +121,24 @@ function fetchData() {
         .then(data => {
             if (data.success) {
                 globalQuotes = data.quotes;
-                // Gələcək oflayn istifadə üçün yadda saxla
                 localStorage.setItem('rates_cache', JSON.stringify(data.quotes));
                 toggleStatusBanner(false);
                 renderUI();
+            } else {
+                console.warn("API xətası, keşə keçilir...");
+                loadCache();
             }
         })
-        .catch(err => {
-            console.log("Xəta:", err);
-            // API-də problem olsa belə keşi yoxla
-            let cached = localStorage.getItem('rates_cache');
-            if (cached) {
-                globalQuotes = JSON.parse(cached);
-                renderUI();
-            }
-        });
+        .catch(() => loadCache());
 }
 
+function loadCache() {
+    let cached = localStorage.getItem('rates_cache');
+    if (cached) {
+        globalQuotes = JSON.parse(cached);
+        renderUI();
+    }
+}
 
 leftBtns.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -152,9 +158,9 @@ rightBtns.forEach(btn => {
 
 bankBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-        activeBank = this.innerText.trim(); 
+        activeBank = this.innerText.trim();
         setActiveButton(bankBtns, activeBank);
-        renderUI(); 
+        renderUI();
     });
 });
 
@@ -167,6 +173,12 @@ rightInput.addEventListener('input', () => {
     activeInput = 'right';
     renderUI();
 });
+
+window.addEventListener('online', () => {
+    toggleStatusBanner(false);
+    fetchData();
+});
+window.addEventListener('offline', () => toggleStatusBanner(true));
 
 window.onload = () => {
     leftInput.value = "1";
