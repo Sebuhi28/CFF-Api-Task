@@ -12,7 +12,7 @@ let leftCurrency = 'RUB';
 let rightCurrency = 'USD';
 let activeBank = 'ABC';
 let activeInput = 'left';
-let globalQuotes = null; 
+let globalQuotes = null;
 
 const leftInput = document.querySelectorAll('.exchange-input')[0];
 const rightInput = document.querySelectorAll('.exchange-input')[1];
@@ -50,26 +50,28 @@ function renderUI() {
     let fromUSD = leftCurrency === 'USD' ? 1 : globalQuotes['USD' + leftCurrency];
     let toUSD = rightCurrency === 'USD' ? 1 : globalQuotes['USD' + rightCurrency];
     let baseRate = toUSD / fromUSD;
-
     if (leftCurrency === rightCurrency) baseRate = 1;
 
     leftRateInfo.innerText = `1 ${leftCurrency} = ${baseRate.toFixed(4)} ${rightCurrency}`;
     rightRateInfo.innerText = `1 ${rightCurrency} = ${(1 / baseRate).toFixed(4)} ${leftCurrency}`;
 
-    let amountLeft = validateInput(leftInput);
     let bankData = banks[activeBank];
-
-    let totalBuy = (amountLeft * baseRate) * (1 + bankData.buy);
-    let totalSell = (amountLeft * baseRate) * (1 + bankData.sell);
-
-    buyRateDisplay.innerText = totalBuy.toFixed(2);
-    sellRateDisplay.innerText = totalSell.toFixed(2);
+    let currentAmount; 
 
     if (activeInput === 'left') {
-        rightInput.value = leftInput.value === '' ? '' : (amountLeft * baseRate).toFixed(4);
+        currentAmount = validateInput(leftInput);
+        rightInput.value = leftInput.value === '' ? '' : (currentAmount * baseRate).toFixed(4);
+        
+        let convertedValue = currentAmount * baseRate;
+        buyRateDisplay.innerText = (convertedValue * (1 + bankData.buy)).toFixed(2);
+        sellRateDisplay.innerText = (convertedValue * (1 + bankData.sell)).toFixed(2);
     } else {
-        let amountRight = validateInput(rightInput);
-        leftInput.value = rightInput.value === '' ? '' : (amountRight / baseRate).toFixed(4);
+        currentAmount = validateInput(rightInput);
+        // Sol inputu hesabla
+        leftInput.value = rightInput.value === '' ? '' : (currentAmount / baseRate).toFixed(4);
+        
+        buyRateDisplay.innerText = (currentAmount * (1 + bankData.buy)).toFixed(2);
+        sellRateDisplay.innerText = (currentAmount * (1 + bankData.sell)).toFixed(2);
     }
 }
 
@@ -82,7 +84,7 @@ function fetchData() {
                 renderUI();
             }
         })
-        .catch(err => console.log("Xəta baş verdi:", err));
+        .catch(err => console.log("Xəta:", err));
 }
 
 leftBtns.forEach(btn => {
